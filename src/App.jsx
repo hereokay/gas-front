@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './GasCostChecker.css'; // 스타일시트 임포트
+
 
 function GasCostChecker() {
   const [address, setAddress] = useState('');
@@ -26,22 +28,28 @@ function GasCostChecker() {
   };
 
   return (
-    <div>
-      <h1>가스 비용 확인</h1>
-      <input
-        type="text"
-        placeholder="계정 주소 입력"
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-      />
-      <button onClick={checkGasCost} disabled={isLoading || !address}>
-        확인
-      </button>
-      {isLoading && <p>로딩 중...</p>}
-      {spendGasUSDT !== null && <p>사용된 가스 비용 (USDT): {spendGasUSDT} USDT</p>}
-      {error && <p>{error}</p>}
+    <div className="container">
+      <h1 className="title">가스 비용 확인</h1>
+      <div className="input-group">
+        <input
+          type="text"
+          placeholder="계정 주소 입력"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          className="input-field"
+        />
+        <button onClick={checkGasCost} disabled={isLoading || !address} className="check-button">
+          확인
+        </button>
+      </div>
+      <div className="result">
+        {isLoading && <p>로딩 중...</p>}
+        {spendGasUSDT !== null && <p>사용된 가스 비용 (USDT): {spendGasUSDT} USDT</p>}
+        {error && <p className="error-message">{error}</p>}
+      </div>
     </div>
   );
 }
+
 
 export default GasCostChecker;

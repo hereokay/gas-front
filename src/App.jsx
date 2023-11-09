@@ -1,7 +1,46 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './GasCostChecker.css'; // 스타일시트 임포트
+import { TextField, Button, CircularProgress, Typography, Container, Box, Paper } from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
+
+// 사용자 정의 테마 생성
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#556cd6',
+    },
+    secondary: {
+      main: '#19857b',
+    },
+    background: {
+      default: '#f7f7f7',
+      paper: '#ffffff',
+    },
+  },
+});
+
+async function fetchGasCost(address) {
+  try {
+    const response = await axios.get(`http://localhost:8080/api/etherscan/user?address=${address}`);
+    return response.data.spendGasUSDT;
+  } catch (error) {
+    throw new Error('트랜잭션 주소를 찾을 수 없거나 오류가 발생했습니다.');
+  }
+}
+
+function GasCostDisplay({ isLoading, spendGasUSDT, error }) {
+  if (isLoading) {
+    return <CircularProgress />;
+  }
+  if (error) {
+    return <p>{error}</p>;
+  }
+  if (spendGasUSDT !== null) {
+    return <p>사용된 가스 비용 (USDT): {spendGasUSDT} USDT</p>;
+  }
+  return null;
+}
 
 function GasCostChecker() {
   const [address, setAddress] = useState('');
@@ -10,46 +49,46 @@ function GasCostChecker() {
   const [error, setError] = useState(null);
 
   const checkGasCost = async () => {
-    const startTime = performance.now(); // 시간 측정 시작
     setIsLoading(true);
-    setError(null);
     try {
-      const response = await axios.get(`http://localhost:8080/api/etherscan/user?address=${address}`);
-      const roundedSpendGasUSDT = parseFloat(response.data.spendGasUSDT.toFixed(2));
-      setSpendGasUSDT(roundedSpendGasUSDT);
+      const gasCost = await fetchGasCost(address);
+      setSpendGasUSDT(gasCost);
+      setError(null);
     } catch (error) {
-      setError('트랜잭션 주소를 찾을 수 없거나 오류가 발생했습니다.');
+      setError(error.message);
       setSpendGasUSDT(null);
     } finally {
       setIsLoading(false);
-      const endTime = performance.now(); // 시간 측정 종료
-      console.log(`처리 시간: ${endTime - startTime} 밀리초`); // 콘솔에 시간 차이 출력
     }
   };
 
   return (
-    <div className="container">
-      <h1 className="title">가스 비용 확인</h1>
-      <div className="input-group">
-        <input
-          type="text"
-          placeholder="계정 주소 입력"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="input-field"
-        />
-        <button onClick={checkGasCost} disabled={isLoading || !address} className="check-button">
-          확인
-        </button>
-      </div>
-      <div className="result">
-        {isLoading && <p>로딩 중...</p>}
-        {spendGasUSDT !== null && <p>사용된 가스 비용 (USDT): {spendGasUSDT} USDT</p>}
-        {error && <p className="error-message">{error}</p>}
-      </div>
-    </div>
+    <ThemeProvider theme={theme}>
+      <Container maxWidth="sm">
+        <Paper elevation={3} style={{ padding: 20, marginTop: 40 }}>
+          <Typography variant="h4" align="center">가스 비용 확인</Typography>
+          <TextField 
+            type="text" 
+            placeholder="계정 주소 입력" 
+            value={address} 
+            onChange={(e) => setAddress(e.target.value)} 
+            fullWidth
+            margin="normal"
+          />
+          <Button 
+            onClick={checkGasCost} 
+            disabled={isLoading || !address}
+            variant="contained"
+            color="primary"
+            style={{ display: 'block', margin: '20px auto' }}
+          >
+            확인
+          </Button>
+          <GasCostDisplay isLoading={isLoading} spendGasUSDT={spendGasUSDT} error={error} />
+        </Paper>
+      </Container>
+    </ThemeProvider>
   );
 }
-
 
 export default GasCostChecker;

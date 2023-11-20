@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { TextField, Button, CircularProgress, Typography, Container, Box, Paper } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-
+import './GasCostChecker.css'; // CSS 파일 임포트
 
 // 사용자 정의 테마 생성
 const theme = createTheme({
@@ -20,10 +20,10 @@ const theme = createTheme({
   },
 });
 
-async function fetchGasCost(address) {
+async function fetchUser(address) {
   try {
-    const response = await axios.get(`http://localhost:8080/api/etherscan/user?address=${address}`);
-    return response.data.spendGasUSDT;
+    const response = await axios.get(`http://localhost:8080/user?address=${address}`);
+    return response.data;
   } catch (error) {
     throw new Error('트랜잭션 주소를 찾을 수 없거나 오류가 발생했습니다.');
   }
@@ -42,17 +42,36 @@ function GasCostDisplay({ isLoading, spendGasUSDT, error }) {
   return null;
 }
 
+function RankingDisplay({ isLoading, ranking, error }) {
+  if (isLoading) {
+    return <CircularProgress />;
+  }
+  if (error) {
+    return <p>{error}</p>;
+  }
+  if (ranking !== null) {
+    return <p>Rank : {ranking}</p>;
+  }
+  return null;
+}
+
 function GasCostChecker() {
   const [address, setAddress] = useState('');
   const [spendGasUSDT, setSpendGasUSDT] = useState(null);
+  const [ranking, setRanking] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const checkGasCost = async () => {
     setIsLoading(true);
     try {
-      const gasCost = await fetchGasCost(address);
+      let user = await fetchUser(address);
+      let gasCost = user.spendGasUSDT;
+      let ranking = user.ranking;
+
+      gasCost = parseFloat(gasCost.toFixed(2)); // 소수점 두 자리로 줄임
       setSpendGasUSDT(gasCost);
+      setRanking(ranking);
       setError(null);
     } catch (error) {
       setError(error.message);
@@ -85,10 +104,12 @@ function GasCostChecker() {
             확인
           </Button>
           <GasCostDisplay isLoading={isLoading} spendGasUSDT={spendGasUSDT} error={error} />
+          <RankingDisplay isLoading={isLoading} ranking={ranking} error={error} />
         </Paper>
       </Container>
     </ThemeProvider>
   );
+  
 }
 
 export default GasCostChecker;

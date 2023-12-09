@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { TextField, Button, CircularProgress, Typography, Container, Box, Paper } from '@mui/material';
+import { TextField, Button, CircularProgress, Typography, Container, Paper } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import './GasCostChecker.css'; // CSS 파일 임포트
 
@@ -20,9 +20,11 @@ const theme = createTheme({
   },
 });
 
+const IP = "http://3.38.76.157:8080";
+
 async function fetchUser(address) {
   try {
-    const response = await axios.get(`http://localhost:8080/user?address=${address}`);
+    const response = await axios.get(IP+`/user?address=${address}`);
     return response.data;
   } catch (error) {
     throw new Error('트랜잭션 주소를 찾을 수 없거나 오류가 발생했습니다.');

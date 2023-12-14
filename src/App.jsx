@@ -76,7 +76,7 @@ function GasCostChecker() {
       setRanking(ranking);
       setError(null);
     } catch (error) {
-      setError(error.message);
+      setError("존재하지 않는 주소입니다.");
       setSpendGasUSDT(null);
     } finally {
       setIsLoading(false);
@@ -106,7 +106,6 @@ function GasCostChecker() {
             확인
           </Button>
           <GasCostDisplay isLoading={isLoading} spendGasUSDT={spendGasUSDT} error={error} />
-          <RankingDisplay isLoading={isLoading} ranking={ranking} error={error} />
         </Paper>
       </Container>
     </ThemeProvider>
